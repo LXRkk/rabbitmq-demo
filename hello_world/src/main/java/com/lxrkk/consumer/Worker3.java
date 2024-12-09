@@ -37,9 +37,14 @@ public class Worker3 {
         };
         // 消费者取消消费接口回调逻辑
         CancelCallback cancelCallback = consumerTag -> System.out.println(consumerTag + "消费者取消消费接口回调逻辑");
-        // 采用手动应答
-        boolean autoAck = false;
         try {
+            // 设置不公平分发（之前是轮训分发）
+            //int prefetchCount = 1;
+            // 预取值
+            int prefetchCount = 2;
+            channel.basicQos(prefetchCount);
+            // 采用手动应答
+            boolean autoAck = false;
             channel.basicConsume(TASK_QUEUE_NAME, autoAck, deliverCallback, cancelCallback);
         } catch (IOException e) {
             throw new RuntimeException(e);

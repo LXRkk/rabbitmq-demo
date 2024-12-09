@@ -2,6 +2,7 @@ package com.lxrkk.producer;
 
 import com.lxrkk.util.RabbitMQUtils;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.MessageProperties;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,14 +23,18 @@ public class Task2 {
         // 获取信道
         Channel channel = RabbitMQUtils.getChannel();
         try {
+            // 开启发布确认
+            channel.confirmSelect();
             // 声明队列
-            channel.queueDeclare(TASK_QUEUE_NAME,false,false,false,null);
+            boolean durable = true; // 消息队列持久化
+            channel.queueDeclare(TASK_QUEUE_NAME,durable,false,false,null);
             // 控制台输入信息
             Scanner scanner = new Scanner(System.in);
             while (scanner.hasNext()) {
                 System.out.println("请输入内容：");
                 String message = scanner.nextLine();
-                channel.basicPublish("",TASK_QUEUE_NAME,null,message.getBytes(StandardCharsets.UTF_8));
+                // 消息持久化 MessageProperties.PERSISTENT_TEXT_PLAIN
+                channel.basicPublish("",TASK_QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN,message.getBytes(StandardCharsets.UTF_8));
                 System.out.println(message + " 已发送！");
             }
         } catch (IOException e) {

@@ -31,7 +31,7 @@ public class Consumer1 {
             String message = new String(delivery.getBody());
             System.out.println(message);
         };
-        // 取消消费的一个回调接口，如在消费的时候队列背删除了
+        // 取消消费的一个回调接口，如在消费的时候队列被删除了
         CancelCallback cancelCallback = consumerTag -> System.out.println("消息接收被中断！");
         try {
             // 创建连接
