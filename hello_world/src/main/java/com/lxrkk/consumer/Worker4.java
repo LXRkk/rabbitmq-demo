@@ -40,6 +40,7 @@ public class Worker4 {
         try {
             // 设置不公平分发（之前是轮训分发）
             //int prefetchCount = 1;
+            // 预取值
             int prefetchCount = 5;
             channel.basicQos(prefetchCount);
             // 采用手动应答
