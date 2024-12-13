@@ -1,8 +1,8 @@
 package com.lxrkk.producer;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.*;
+
+import java.util.HashMap;
 
 /**
  * 生产者 发送消息
@@ -31,6 +31,7 @@ public class Producer1 {
             Connection connection = connectionFactory.newConnection();
             // 创建信道
             Channel channel = connection.createChannel();
+
             /**
              * 生成一个队列
              * queueDeclare()参数解释：
@@ -39,15 +40,26 @@ public class Producer1 {
              * 4.最后一个消费者断开连接后，是否自动删除，true 表示自动删除
              * 5.其他参数
              */
-            channel.queueDeclare(QUEUE_NAME,false,false,false,null);
-            String message = "Hello~,rabbitmq!";
-            /**
-             * 发送消息
-             * 参数解释：1.交换机（""表示使用默认的）2.哪个队列（传入队列的 key）
-             * 3.其他信息 4.待发送的消息（需转成 byte 数组）
-             */
-            channel.basicPublish("",QUEUE_NAME,null,message.getBytes());
-            System.out.println("消息发送完毕！");
+            //设置队列的最大优先级0~255,数字越大，优先级越高。一般1~10，优先级过高会浪费 CPU 和 内存
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("x-max-priority",10);
+            channel.queueDeclare(QUEUE_NAME,false,false,false,map);
+            // 给消息赋予一个 priority 属性
+            AMQP.BasicProperties properties = new AMQP.BasicProperties().builder().priority(5).build();
+            for (int i = 1; i < 11; i++) {
+                String message = "Hello~,rabbitmq!" + i;
+                if (i == 8) {
+                    /**
+                     * 发送消息
+                     * 参数解释：1.交换机（""表示使用默认的）2.哪个队列（传入队列的 key）
+                     * 3.其他信息 4.待发送的消息（需转成 byte 数组）
+                     */
+                    channel.basicPublish("",QUEUE_NAME,properties,message.getBytes());
+                } else {
+                    channel.basicPublish("",QUEUE_NAME,null,message.getBytes());
+                }
+                System.out.println(message + "发送完毕！");
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
